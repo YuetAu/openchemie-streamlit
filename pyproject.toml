@@ -7,9 +7,10 @@ dependencies = [
   "streamlit>=1.44.0",
   "pypdf>=5.4.0",
   "openchemie",
-  "numpy==1.26.4",
-  "torch>=1.13.1",
-  "torchvision>=0.14.1",
+  "numpy<2",
+  "torch==1.13.1",
+  "torchvision==0.14.1",
+  "transformers==4.30.2",
 ]
 
 [project.optional-dependencies]
