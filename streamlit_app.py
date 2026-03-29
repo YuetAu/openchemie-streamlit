@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import traceback
+
 import streamlit as st
 
 from openchemie_streamlit.executor import OpenChemIERunner
@@ -95,7 +97,16 @@ if run_clicked and pdf_bytes:
         progress_bar.progress(min(max(pct, 0), 40))
         progress_text.info(f"Model preparation {done}/{total}: {message}")
 
-    runner.prepare_models(selected_method_ids, progress_callback=model_progress)
+    try:
+        runner.prepare_models(selected_method_ids, progress_callback=model_progress)
+    except Exception as exc:
+        progress_bar.progress(100)
+        progress_text.error("Model preparation failed.")
+        st.error(f"Model loading error: {exc}")
+        with st.expander("Show full error details", expanded=True):
+            st.exception(exc)
+            st.code(traceback.format_exc())
+        st.stop()
 
     def run_progress(done: int, total: int, message: str) -> None:
         if total <= 0:
@@ -108,7 +119,16 @@ if run_clicked and pdf_bytes:
         progress_bar.progress(min(max(pct, base), 100))
         progress_text.info(f"Execution {done}/{total}: {message}")
 
-    results = runner.run_selected(selected_method_ids, pdf_bytes, progress_callback=run_progress)
+    try:
+        results = runner.run_selected(selected_method_ids, pdf_bytes, progress_callback=run_progress)
+    except Exception as exc:
+        progress_bar.progress(100)
+        progress_text.error("Execution failed.")
+        st.error(f"Run error: {exc}")
+        with st.expander("Show full error details", expanded=True):
+            st.exception(exc)
+            st.code(traceback.format_exc())
+        st.stop()
 
     progress_bar.progress(100)
     progress_text.success("Execution complete.")
