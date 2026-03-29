@@ -3,3 +3,4 @@ libpoppler-cpp-dev
 pkg-config 
 python3-dev
 libxrender1
+git-lfs
