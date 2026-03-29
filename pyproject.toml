@@ -6,6 +6,7 @@ requires-python = ">=3.10"
 dependencies = [
   "streamlit>=1.44.0",
   "pypdf>=5.4.0",
+  "openchemie",
 ]
 
 [project.optional-dependencies]
@@ -16,3 +17,6 @@ dev = [
 [tool.pytest.ini_options]
 pythonpath = ["."]
 addopts = "-q"
+
+[tool.uv.sources]
+openchemie = { git = "https://github.com/CrystalEye42/OpenChemIE" }
