@@ -2338,6 +2338,7 @@ name = "openchemie-streamlit"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
+    { name = "huggingface-hub" },
     { name = "numpy" },
     { name = "openchemie" },
     { name = "pypdf" },
@@ -2354,6 +2355,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "huggingface-hub", specifier = ">=0.36.2" },
     { name = "numpy", specifier = "<2" },
     { name = "openchemie", git = "https://github.com/CrystalEye42/OpenChemIE" },
     { name = "pypdf", specifier = ">=5.4.0" },

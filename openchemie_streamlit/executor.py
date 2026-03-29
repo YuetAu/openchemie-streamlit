@@ -69,6 +69,7 @@ class OpenChemIERunner:
         self.backend = backend or self._load_backend()
 
     def _load_backend(self) -> object:
+        self._patch_layoutparser_effdet_for_restricted_networks()
         try:
             module = importlib.import_module("openchemie")
         except Exception as exc:  # pragma: no cover - import availability is env-specific
@@ -81,6 +82,72 @@ class OpenChemIERunner:
         if hasattr(module, "OpenChemIE"):
             return module.OpenChemIE()
         return module
+
+    def _patch_layoutparser_effdet_for_restricted_networks(self) -> None:
+        """Avoid extra GitHub backbone downloads in restricted environments.
+
+        LayoutParser's EfficientDet integration requests an additional backbone file
+        from GitHub even when a detector checkpoint is available. In locked-down
+        deployments this can fail with HTML content and raise an UnpicklingError.
+        """
+        try:
+            lm = importlib.import_module("layoutparser.models.effdet.layoutmodel")
+        except Exception:
+            return
+
+        model_cls = getattr(lm, "EfficientDetLayoutModel", None)
+        if model_cls is None or getattr(model_cls, "_openchemie_patched", False):
+            return
+
+        def _patched_initialize_model(self, config_path, model_path, label_map, extra_config):
+            config_path, model_path = self.config_parser(config_path, model_path)
+
+            if config_path.startswith("lp://"):
+                dataset_name, model_name = config_path.lstrip("lp://").split("/")[1:3]
+
+                if label_map is None:
+                    label_map = lm.LABEL_MAP_CATALOG[dataset_name]
+                num_classes = len(label_map)
+
+                model_path_local = lm.PathManager.get_local_path(model_path)
+
+                self.model = lm.create_model(
+                    model_name,
+                    num_classes=num_classes,
+                    bench_task="predict",
+                    pretrained=False,
+                    checkpoint_path=model_path_local,
+                )
+            else:
+                if model_path is None:
+                    raise AssertionError(
+                        "When the specified model is not layoutparser-based, model_path is required"
+                    )
+
+                if label_map is None and "num_classes" not in extra_config:
+                    raise AssertionError(
+                        "When the specified model is not layoutparser-based, provide label_map or num_classes"
+                    )
+
+                model_name = config_path
+                model_path_local = lm.PathManager.get_local_path(model_path)
+                num_classes = len(label_map) if label_map else extra_config["num_classes"]
+
+                self.model = lm.create_model(
+                    model_name,
+                    num_classes=num_classes,
+                    bench_task="predict",
+                    pretrained=False,
+                    checkpoint_path=model_path_local,
+                )
+
+            self.model.to(self.device)
+            self.model.eval()
+            self.config = self.model.config
+            self.label_map = label_map if label_map is not None else {}
+
+        model_cls._initialize_model = _patched_initialize_model
+        model_cls._openchemie_patched = True
 
     def prepare_models(
         self,
