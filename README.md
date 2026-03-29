@@ -40,6 +40,11 @@ streamlit run streamlit_app.py
 - `Could not import openchemie`: install OpenChemIE in this environment.
 - Validation errors: ensure the input is a valid, readable PDF under 50 MB.
 - Slow runs: run fewer methods first, then scale up to all methods.
+- Dependency compatibility for OpenChemIE 0.1.0:
+  - `torch==1.13.1`
+  - `torchvision==0.14.1`
+  - `transformers==4.30.2`
+  - `numpy<2`
 
 ## Manual Verification Notes
 

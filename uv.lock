@@ -2374,6 +2374,7 @@ dependencies = [
     { name = "pypdf" },
     { name = "streamlit" },
     { name = "torch" },
+    { name = "torchvision" },
 ]
 
 [package.optional-dependencies]
@@ -2389,6 +2390,7 @@ requires-dist = [
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.3.0" },
     { name = "streamlit", specifier = ">=1.44.0" },
     { name = "torch", specifier = ">=1.13.1" },
+    { name = "torchvision", specifier = ">=0.14.1" },
 ]
 provides-extras = ["dev"]
 
