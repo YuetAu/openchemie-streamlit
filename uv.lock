@@ -2373,6 +2373,7 @@ dependencies = [
     { name = "openchemie" },
     { name = "pypdf" },
     { name = "streamlit" },
+    { name = "torch" },
 ]
 
 [package.optional-dependencies]
@@ -2387,6 +2388,7 @@ requires-dist = [
     { name = "pypdf", specifier = ">=5.4.0" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.3.0" },
     { name = "streamlit", specifier = ">=1.44.0" },
+    { name = "torch", specifier = ">=1.13.1" },
 ]
 provides-extras = ["dev"]
 

@@ -8,6 +8,7 @@ dependencies = [
   "pypdf>=5.4.0",
   "openchemie",
   "numpy==1.26.4",
+  "torch>=1.13.1",
 ]
 
 [project.optional-dependencies]
