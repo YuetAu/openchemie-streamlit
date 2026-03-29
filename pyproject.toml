@@ -1,0 +1,18 @@
+[project]
+name = "openchemie-streamlit"
+version = "0.1.0"
+description = "Streamlit frontend for running OpenChemIE PDF extraction methods"
+requires-python = ">=3.10"
+dependencies = [
+  "streamlit>=1.44.0",
+  "pypdf>=5.4.0",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.3.0",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+addopts = "-q"

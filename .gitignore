@@ -1,0 +1,7 @@
+.codex/
+.github/
+__pycache__/
+.pytest_cache/
+.streamlit/
+.venv/
+openspec/
