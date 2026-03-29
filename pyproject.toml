@@ -7,6 +7,7 @@ dependencies = [
   "streamlit>=1.44.0",
   "pypdf>=5.4.0",
   "openchemie",
+  "numpy==1.26.4",
 ]
 
 [project.optional-dependencies]
