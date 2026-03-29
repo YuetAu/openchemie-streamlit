@@ -82,6 +82,10 @@ if run_clicked and pdf_bytes:
             "pip install git+https://github.com/CrystalEye42/OpenChemIE.git\n"
             "```"
         )
+        with st.expander("Show full error details", expanded=True):
+            root = exc.__cause__ or exc
+            st.exception(root)
+            st.code(traceback.format_exc())
         st.stop()
 
     selected_method_ids = list(dict.fromkeys(selected_method_ids))
