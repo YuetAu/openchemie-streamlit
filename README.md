@@ -12,6 +12,15 @@ pip install -r requirements.txt
 
 Install OpenChemIE in the same environment (for example from source or package) so the frontend can call its extraction methods.
 
+## System Dependencies
+
+Some PDF methods require Poppler (used by `pdf2image`).
+
+- Local (macOS): `brew install poppler`
+- Local (Ubuntu/Debian): `sudo apt-get install -y poppler-utils`
+- Streamlit Cloud: include `packages.txt` with:
+  - `poppler-utils`
+
 ## Run the app
 
 ```bash

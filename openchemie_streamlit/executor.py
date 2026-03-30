@@ -252,7 +252,7 @@ class OpenChemIERunner:
                     payload = normalize_for_json(result)
                 except Exception as exc:
                     status = "failed"
-                    error = str(exc)
+                    error = self._format_runtime_error(exc)
                     payload = None
 
                 duration_ms = int((time.perf_counter() - start) * 1000)
@@ -300,3 +300,17 @@ class OpenChemIERunner:
         except TypeError:
             raw_pdf = pdf_path.read_bytes()
             return method(raw_pdf)
+
+    def _format_runtime_error(self, exc: Exception) -> str:
+        message = str(exc)
+        lower = message.lower()
+
+        if "unable to get page count" in lower or "poppler" in lower:
+            return (
+                f"{message}\n\n"
+                "Poppler is required for PDF image extraction methods. "
+                "On Streamlit Cloud add `packages.txt` with `poppler-utils`, "
+                "then redeploy."
+            )
+
+        return message
