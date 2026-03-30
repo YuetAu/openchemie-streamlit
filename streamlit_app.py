@@ -34,9 +34,8 @@ with st.container(border=True):
     id_to_spec = {method.method_id: method for method in METHOD_SPECS}
 
     default_selection = [
-        "extract_reactions_from_pdf",
-        "extract_molecules_from_text_in_pdf",
         "extract_figures_from_pdf",
+        "extract_tables_from_pdf",
     ]
 
     selected_method_ids = st.multiselect(
@@ -59,6 +58,17 @@ with st.container(border=True):
 
 with st.container(border=True):
     st.subheader("3) Execute")
+    skip_preload = st.checkbox(
+        "Skip model preloading (recommended on Streamlit Cloud)",
+        value=True,
+        help="Loads models lazily during each method call to reduce startup spikes.",
+        disabled=not pdf_is_valid,
+    )
+    if not skip_preload and len(selected_method_ids) > 3:
+        st.warning(
+            "Preloading many methods may take a long time and can exceed Cloud limits. "
+            "Consider enabling skip preloading or running fewer methods."
+        )
     run_clicked = st.button(
         "Run selected methods",
         type="primary",
@@ -90,27 +100,31 @@ if run_clicked and pdf_bytes:
 
     selected_method_ids = list(dict.fromkeys(selected_method_ids))
 
-    progress_text.info("Preparing required models and downloads...")
+    if skip_preload:
+        progress_text.info("Skipping preload. Models will download/load lazily per method.")
+        progress_bar.progress(40)
+    else:
+        progress_text.info("Preparing required models and downloads...")
 
-    def model_progress(done: int, total: int, message: str) -> None:
-        if total <= 0:
-            progress_bar.progress(20)
-            progress_text.info(f"Model preparation: {message}")
-            return
-        pct = int((done / total) * 40)
-        progress_bar.progress(min(max(pct, 0), 40))
-        progress_text.info(f"Model preparation {done}/{total}: {message}")
+        def model_progress(done: int, total: int, message: str) -> None:
+            if total <= 0:
+                progress_bar.progress(20)
+                progress_text.info(f"Model preparation: {message}")
+                return
+            pct = int((done / total) * 40)
+            progress_bar.progress(min(max(pct, 0), 40))
+            progress_text.info(f"Model preparation {done}/{total}: {message}")
 
-    try:
-        runner.prepare_models(selected_method_ids, progress_callback=model_progress)
-    except Exception as exc:
-        progress_bar.progress(100)
-        progress_text.error("Model preparation failed.")
-        st.error(f"Model loading error: {exc}")
-        with st.expander("Show full error details", expanded=True):
-            st.exception(exc)
-            st.code(traceback.format_exc())
-        st.stop()
+        try:
+            runner.prepare_models(selected_method_ids, progress_callback=model_progress)
+        except Exception as exc:
+            progress_bar.progress(100)
+            progress_text.error("Model preparation failed.")
+            st.error(f"Model loading error: {exc}")
+            with st.expander("Show full error details", expanded=True):
+                st.exception(exc)
+                st.code(traceback.format_exc())
+            st.stop()
 
     def run_progress(done: int, total: int, message: str) -> None:
         if total <= 0:
