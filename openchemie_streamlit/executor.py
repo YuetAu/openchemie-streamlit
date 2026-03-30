@@ -105,7 +105,7 @@ class OpenChemIERunner:
                 filename = f"{dataset_name.lower()}-{model_name}.pth.tar"
                 models[model_name] = (
                     "https://huggingface.co/layoutparser/efficientdet/resolve/main/"
-                    f"{dataset_name}/{model_name}/{filename}"
+                    f"{dataset_name}/{model_name}/{filename}?download=true"
                 )
 
         def _validate_checkpoint_file(path_str: str) -> None:
