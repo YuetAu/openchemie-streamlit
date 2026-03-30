@@ -99,6 +99,30 @@ class OpenChemIERunner:
         if model_cls is None or getattr(model_cls, "_openchemie_patched", False):
             return
 
+        # Prefer Hugging Face mirror over Dropbox URLs in restricted deployments.
+        for dataset_name, models in lm.MODEL_CATALOG.items():
+            for model_name in list(models.keys()):
+                filename = f"{dataset_name.lower()}-{model_name}.pth.tar"
+                models[model_name] = (
+                    "https://huggingface.co/layoutparser/efficientdet/resolve/main/"
+                    f"{dataset_name}/{model_name}/{filename}"
+                )
+
+        def _validate_checkpoint_file(path_str: str) -> None:
+            path = Path(path_str)
+            if not path.exists() or path.is_dir():
+                return
+            try:
+                with path.open("rb") as f:
+                    head = f.read(256).lstrip()
+            except Exception:
+                return
+            if head.startswith(b"<") and (b"html" in head.lower() or b"doctype" in head.lower()):
+                raise RuntimeError(
+                    f"Downloaded checkpoint is HTML instead of model weights: {path}. "
+                    "This usually means remote model hosting is blocked."
+                )
+
         def _patched_initialize_model(self, config_path, model_path, label_map, extra_config):
             config_path, model_path = self.config_parser(config_path, model_path)
 
@@ -110,6 +134,7 @@ class OpenChemIERunner:
                 num_classes = len(label_map)
 
                 model_path_local = lm.PathManager.get_local_path(model_path)
+                _validate_checkpoint_file(model_path_local)
 
                 self.model = lm.create_model(
                     model_name,
@@ -131,6 +156,7 @@ class OpenChemIERunner:
 
                 model_name = config_path
                 model_path_local = lm.PathManager.get_local_path(model_path)
+                _validate_checkpoint_file(model_path_local)
                 num_classes = len(label_map) if label_map else extra_config["num_classes"]
 
                 self.model = lm.create_model(
