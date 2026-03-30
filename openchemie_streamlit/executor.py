@@ -8,6 +8,8 @@ from collections.abc import Callable
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from tempfile import NamedTemporaryFile
+from urllib.parse import urlparse
+from urllib.request import Request, urlopen
 
 from .methods import METHOD_IDS
 from .serialization import normalize_for_json
@@ -108,6 +110,30 @@ class OpenChemIERunner:
                     f"{dataset_name}/{model_name}/{filename}?download=true"
                 )
 
+        def _resolve_checkpoint_path(path_or_url: str) -> str:
+            resolved = lm.PathManager.get_local_path(path_or_url)
+            if not isinstance(resolved, str):
+                return str(resolved)
+            if not resolved.startswith(("http://", "https://")):
+                return resolved
+
+            parsed = urlparse(resolved)
+            filename = Path(parsed.path).name or "model.ckpt"
+            cache_dir = Path.home() / ".cache" / "openchemie-streamlit" / "checkpoints"
+            cache_dir.mkdir(parents=True, exist_ok=True)
+            local_file = cache_dir / filename
+
+            if not local_file.exists() or local_file.stat().st_size == 0:
+                req = Request(
+                    resolved,
+                    headers={"User-Agent": "openchemie-streamlit/0.1"},
+                )
+                with urlopen(req, timeout=300) as resp:
+                    payload = resp.read()
+                local_file.write_bytes(payload)
+
+            return str(local_file)
+
         def _validate_checkpoint_file(path_str: str) -> None:
             path = Path(path_str)
             if not path.exists() or path.is_dir():
@@ -133,7 +159,7 @@ class OpenChemIERunner:
                     label_map = lm.LABEL_MAP_CATALOG[dataset_name]
                 num_classes = len(label_map)
 
-                model_path_local = lm.PathManager.get_local_path(model_path)
+                model_path_local = _resolve_checkpoint_path(model_path)
                 _validate_checkpoint_file(model_path_local)
 
                 self.model = lm.create_model(
@@ -155,7 +181,7 @@ class OpenChemIERunner:
                     )
 
                 model_name = config_path
-                model_path_local = lm.PathManager.get_local_path(model_path)
+                model_path_local = _resolve_checkpoint_path(model_path)
                 _validate_checkpoint_file(model_path_local)
                 num_classes = len(label_map) if label_map else extra_config["num_classes"]
 
