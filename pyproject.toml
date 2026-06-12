@@ -5,7 +5,7 @@ description = "Streamlit frontend for running OpenChemIE PDF extraction methods"
 requires-python = ">=3.10"
 dependencies = [
   "streamlit>=1.44.0",
-  "pypdf>=5.4.0",
+  "pypdf>=6.12.0",
   "openchemie",
   "numpy<2",
   "torch==1.13.1",
